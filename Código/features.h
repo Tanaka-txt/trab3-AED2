@@ -1,0 +1,56 @@
+/*
+Membros do grupo:
+Laysa Almeida de Oliveira - NºUSP 14588002
+Júlio César Tanaka Vergamini - NºUSP 15466276
+*/
+
+#ifndef FEATURES_H
+#define FEATURES_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "registro.h"
+
+// Func1  protótipos
+void create_regi_bin(char *arq_csv, char *arq_bin);
+void create_cabecalho();
+void write_registro_bin(reg_dados dados, FILE *binario);
+
+// Func2- 
+void read_bin(char *arq_bin);
+
+// Func3-
+void busca_bin(char *arq_bin);
+
+// Func4-
+int busca_por_rrn(char *arquivo, int posi_relativa);
+
+// Func5-
+void funcionalidade5(const char *nome_arq_dados, const char *nome_arq_indice);
+
+// Func6-
+void funcionalidade6(const char *arq_dados, const char *arq_indice, int n);
+
+// Func7-
+void funcionalidade7(const char *arq_dados, const char *arq_indice, int n);
+
+// Func8-
+void funcionalidade8(const char *arq_dados, const char *arq_indice, int n);
+
+// Func9-
+void funcionalidade9(const char *arq_dados, const char *arq_indice, int n);
+
+// Func10-
+void funcionalidade10(const char *nome_arq_dados);
+
+// Func11-
+void funcionalidade11(const char *arq_dados, const char *arq_indice, const char *origem, const char *destino);
+
+// Func12-
+void funcionalidade12(const char *arq_dados, const char *arq_indice, const char *origem);
+
+// Func13-
+void funcionalidade13(const char *arq_dados, const char *arq_indice, const char *origem);
+
+#endif
