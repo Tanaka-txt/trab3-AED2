@@ -16,7 +16,7 @@ Antes de iniciar as funcionalidades, certifique-se de que sua implementação em
 
 ## Funcionalidades de Análise de Grafos
 
-### Funcionalidade [10] Gerar Grafo e Listas de Adjacência
+### Funcionalidade [10] --> Gerar Grafo e Listas de Adjacência
 Recupera os registros do arquivo binário e constrói o grafo na memória.
 * **Vértices:** Nomes das estações (ordenados alfabeticamente).
 * **Arestas:** Conexões direcionadas entre estações (próxima estação e integração).
@@ -24,14 +24,14 @@ Recupera os registros do arquivo binário e constrói o grafo na memória.
 
 
 
-### Funcionalidade [11] Caminho Mais Curto (Dijkstra)
+### Funcionalidade [11] --> Caminho Mais Curto (Dijkstra)
 Determina o caminho com a menor distância entre uma estação origem e uma estação destino.
 * **Critério:** Algoritmo de Dijkstra.
 * **Desempate:** Aplicação rigorosa de ordenação alfabética (vértices e arestas) conforme exigido para garantir a determinidade dos resultados.
 
 
 
-### Funcionalidade [12] Árvore Geradora Mínima (Prim)
+### Funcionalidade [12] --> Árvore Geradora Mínima (Prim)
 Projeta a malha de menor custo possível mantendo a conectividade total entre todas as estações.
 * **Critério:** Algoritmo de Prim.
 * **Conectividade:** Tratamento da malha como bidirecional (ida e volta).
@@ -39,7 +39,7 @@ Projeta a malha de menor custo possível mantendo a conectividade total entre to
 
 
 
-### Funcionalidade [13] Ciclos Simples
+### Funcionalidade [13] --> Ciclos Simples
 Conta a quantidade de ciclos simples existentes a partir de uma estação de origem.
 * **Critério:** Busca em Profundidade (DFS) com *Backtracking*.
 * **Definição:** Ciclo onde não há repetição de vértices, com exceção da estação de origem que é o próprio ponto de destino.
