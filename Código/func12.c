@@ -1,3 +1,4 @@
+/*
 #include "features.h"
 #include "registro.h"
 #include "leitura.h"

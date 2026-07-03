@@ -4,17 +4,8 @@ Laysa Almeida de Oliveira - NºUSP 14588002
 Júlio César Tanaka Vergamini - NºUSP 15466276
 */
 
-/*
- * func13.c
- * -----------------------------------------------------------------------
- * Funcionalidade 13: constroi o grafo de estacoes (via construir_grafo,
- * em grafo.c) e conta, a partir de uma estacao de origem informada,
- * quantos ciclos simples existem partindo dela e retornando a ela
- * (um ciclo simples nao repete nenhum vertice, exceto o primeiro e o
- * ultimo, que sao a propria estacao de origem).
- * -----------------------------------------------------------------------
- */
-
+// Funcionalidade 13: constrói o grafo de estações e conta, a partir de uma estação 
+// de origem informada,quantos ciclos simples existem partindo dela e retornando a ela
 #include "features.h"
 #include <stdlib.h>
 #include "grafo.h"
@@ -123,6 +114,6 @@ void funcionalidade13(const char *arq_dados, const char *arq_indice, const char 
         free(visited);
     }
 
-    // Libera toda a memoria alocada dinamicamente para o grafo.
+    // Libera toda a memória alocada dinamicamente para o grafo
     liberar_grafo(&g);
 }
