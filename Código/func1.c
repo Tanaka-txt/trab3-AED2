@@ -6,33 +6,11 @@ Júlio César Tanaka Vergamini - NºUSP 15466276
 
 #include "features.h"
 #include "leitura.h"
-#include "registro.h"
 #include "fornecidas.h"
-
-// Struct de auxilio para verificar a paridade das estações
-typedef struct{
-    int origem;
-    int destino;
-} Par;
+#include "csv_utils.h"
 
 // Protótipo da função de escrita
 void write_registro_bin(reg_dados dados, FILE *binario);
-
-int existe_estacao(char *nome, char **lista, int tamanho){
-    for(int i = 0; i < tamanho; i++){
-        if(strcmp(nome, lista[i]) == 0)
-            return 1;
-    }
-    return 0;
-}
-
-int existe_par(int a, int b, Par *lista, int tamanho){
-    for(int i = 0; i < tamanho; i++){
-        if(lista[i].origem == a && lista[i].destino == b)
-            return 1;
-    }
-    return 0;
-}
 
 void create_regi_bin(char *arq_csv, char *arq_bin){
     // Agora tudo é variável local! Nada de variáveis globais.
