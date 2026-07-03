@@ -5,7 +5,7 @@ Júlio César Tanaka Vergamini - NºUSP 15466276
 */
 
 // Funcionalidade 11: constrói o grafo de estações e aplica o algoritmo de Dijkstra para encontrar o caminho de menor distância entre uma estação de origem e uma estação de destino. 
-// No final, imprime o número de estações percorridas, a distância total é a sequência de estações do caminho encontrado.
+// No final, imprime o número de estações percorridas, a distância total e a sequência de estações do caminho encontrado.
 
 #include "features.h"
 #include <stdlib.h>
@@ -19,7 +19,7 @@ void funcionalidade11(const char *arq_dados, const char *arq_indice, const char 
         return;
     }
 
-    // Algoritmo de Dijkstra: identifica os índices numéricos correspondentes a origem e ao destino
+    // Algoritmo de Dijkstra: identifica os índices numéricos correspondentes à origem e ao destino
     int start_idx = buscar_indice_vertice(&g, origem);
     int end_idx = buscar_indice_vertice(&g, destino);
 
@@ -53,7 +53,7 @@ void funcionalidade11(const char *arq_dados, const char *arq_indice, const char 
                 }
             }
 
-            // Encerra o loop se não houver mais vértices alcancaveis (u == -1) ou se o destino já foi processado (u == end_idx).
+            // Encerra o loop se não houver mais vértices alcançáveis (u == -1) ou se o destino já foi processado (u == end_idx).
             if (u == -1 || u == end_idx) break;
             visited[u] = 1;
 

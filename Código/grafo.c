@@ -18,7 +18,7 @@ Júlio César Tanaka Vergamini - NºUSP 15466276
 int comparar_nomes_vertices(const void *a, const void *b) {
     return strcmp(*(const char **)a, *(const char **)b);
 }
-// Compara dois MapEntries numéricamente pelo código para o qsort
+// Compara dois MapEntries numericamente pelo código para o qsort
 int comparar_mapa(const void *a, const void *b) {
     return ((MapEntry *)a)->cod - ((MapEntry *)b)->cod;
 }
@@ -51,9 +51,9 @@ int buscar_indice_vertice(Graph *g, const char *nome) {
     }
     return -1; }
 
-// Insere (ou atualiza) uma aresta na lista de adjacencias de um vértice
+// Insere (ou atualiza) uma aresta na lista de adjacências de um vértice
 void adicionar_aresta(Vertex *v, const char *nomeDest, int dist, const char *linha) {
-    Edge *curr = v->head; // Aresta atual durante a percorrida da lista
+    Edge *curr = v->head; // Aresta atual durante o percurso da lista
     Edge *prev = NULL;    // Aresta anterior a "curr" 
 
     // Percorre a lista até achar a posição alfabética correta ou a aresta que já aponta para o destino
