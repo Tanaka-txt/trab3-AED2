@@ -15,39 +15,31 @@ int main() {
     getchar(); // limpa o buffer por conta do \n
       switch (option){
         case 1 :
-          // Verificamos se a entrada é diferente de vazio
           scanf("%s %s", arq_csv, arq_bin);
           create_regi_bin(arq_csv, arq_bin);
-          // BinarioNaTela("estacoes.bin"); teste para ver 
           break;
 
         case 2 :
-          // Ler nome do arquivo binário
           scanf("%s", arq_bin);
           read_bin(arq_bin);
           break;
 
         case 3 :
-          // Ler nome do arquivo binário e buscar
           scanf("%s", arq_bin);
           busca_bin(arq_bin);
           break;
 
         case 4 :
-          // printf("4\n");
           scanf("%s %d", arq_bin, &RRN);
           busca_por_rrn(arq_bin, RRN);
           break;
         
-        case 5:
-          // printf("5\n");
+        case 5:;
           scanf("%s %s", arq_bin, arq_indice);
           funcionalidade5(arq_bin, arq_indice);
           break;
         
           case 6:
-          // printf("6\n");
-          // Leitura dos nomes dos arquivos e número de buscas
           scanf("%s %s %d", arq_bin, arq_indice, &n);
           funcionalidade6(arq_bin, arq_indice, n);
           break;
@@ -83,31 +75,19 @@ int main() {
         }
 
         case 12: {
-            char campo1[50], valor1[100];
-            // Lê os arquivos e o campo "nomeEstacao"
-            scanf("%s %s %s", arq_bin, arq_indice, campo1);
             
-            // Lê o nome da estação de origem (que está entre aspas)
-            ScanQuoteString(valor1);
-            
-            funcionalidade12(arq_bin, arq_indice, valor1);
             break;
         }
 
         case 13: {
             char campo1[50], valor1[100];
-            // Lê: arq_dados arq_indice nomeEstacao
             scanf("%s %s %s", arq_bin, arq_indice, campo1);
-            
-            // Lê o nome da estação (ex: "Luz") que pode conter espaços e aspas
             ScanQuoteString(valor1);
-            
             funcionalidade13(arq_bin, arq_indice, valor1);
             break;
         }
 
         default:
-        /* Caso que não é nenhum da erro ex. -1 -2  9 */
           printf("Erro\n");
           exit(0);
       }

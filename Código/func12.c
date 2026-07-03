@@ -4,109 +4,19 @@
 #include "utils.h"
 #include <stdlib.h>
 #include <string.h>
+#include "grafo.h"
 
 #define INF 1000000000
 
-// --- Estruturas do Grafo ---
+// =============================================================
+// =============================================================
 
-typedef struct Edge {
-    char *nomeProxEstacao;
-    int distProxEstacao;
-    int InMST; // Flag para marcar se esta aresta pertence à Árvore Geradora Mínima
-    struct Edge *next;
-} Edge;
+// NÃO FUNCIONOU ARRUMAR 
 
-typedef struct Vertex {
-    char *nomeEstacao;
-    Edge *head;
-} Vertex;
+// =============================================================
+// =============================================================
 
-typedef struct Graph {
-    Vertex *vertices;
-    int numVertices;
-} Graph;
-
-typedef struct {
-    int cod;
-    char *nome;
-} MapEntry;
-
-// --- Funções Auxiliares do Grafo ---
-
-static int comparar_nomes_vertices(const void *a, const void *b) {
-    return strcmp(*(const char **)a, *(const char **)b);
-}
-
-static int comparar_mapa(const void *a, const void *b) {
-    return ((MapEntry *)a)->cod - ((MapEntry *)b)->cod;
-}
-
-static const char* buscar_nome_por_codigo(MapEntry *mapa, int tam, int codigo) {
-    int esq = 0, dir = tam - 1;
-    while (esq <= dir) {
-        int meio = esq + (dir - esq) / 2;
-        if (mapa[meio].cod == codigo) return mapa[meio].nome;
-        if (mapa[meio].cod < codigo) esq = meio + 1;
-        else dir = meio - 1;
-    }
-    return NULL;
-}
-
-static int buscar_indice_vertice(Graph *g, const char *nome) {
-    int esq = 0, dir = g->numVertices - 1;
-    while (esq <= dir) {
-        int meio = esq + (dir - esq) / 2;
-        int cmp = strcmp(g->vertices[meio].nomeEstacao, nome);
-        if (cmp == 0) return meio;
-        if (cmp < 0) esq = meio + 1;
-        else dir = meio - 1;
-    }
-    return -1;
-}
-
-static void adicionar_aresta(Vertex *v, const char *nomeDest, int dist) {
-    Edge *curr = v->head;
-    Edge *prev = NULL;
-
-    while (curr != NULL && strcmp(curr->nomeProxEstacao, nomeDest) < 0) {
-        prev = curr;
-        curr = curr->next;
-    }
-
-    if (curr != NULL && strcmp(curr->nomeProxEstacao, nomeDest) == 0) {
-        if (dist < curr->distProxEstacao) {
-            curr->distProxEstacao = dist;
-        }
-        return;
-    }
-
-    Edge *new_edge = malloc(sizeof(Edge));
-    new_edge->nomeProxEstacao = strdup(nomeDest);
-    new_edge->distProxEstacao = dist;
-    new_edge->InMST = 0; 
-    new_edge->next = curr;
-
-    if (prev == NULL) v->head = new_edge;
-    else prev->next = new_edge;
-}
-
-static void liberar_grafo(Graph *g) {
-    for (int i = 0; i < g->numVertices; i++) {
-        free(g->vertices[i].nomeEstacao);
-        Edge *curr = g->vertices[i].head;
-        while (curr != NULL) {
-            Edge *next = curr->next;
-            free(curr->nomeProxEstacao);
-            free(curr);
-            curr = next;
-        }
-    }
-    free(g->vertices);
-}
-
-// --- Implementação Principal ---
-
-void funcionalidade12(const char *arq_dados, const char *arq_indice, const char *origem) {
+/*void funcionalidade12(const char *arq_dados, const char *arq_indice, const char *origem) {
     FILE *fdados = fopen(arq_dados, "rb");
     if (fdados == NULL) {
         printf("Falha no processamento do arquivo.\n");
@@ -273,3 +183,4 @@ void funcionalidade12(const char *arq_dados, const char *arq_indice, const char 
     liberar_grafo(&g);
     fclose(fdados);
 }
+*/
