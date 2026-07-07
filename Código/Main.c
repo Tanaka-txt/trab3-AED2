@@ -75,7 +75,10 @@ int main() {
         }
 
         case 12: {
-            
+            char campo1[50], valor1[100];
+            scanf("%s %s %s", arq_bin, arq_indice, campo1);
+            ScanQuoteString(valor1);
+            funcionalidade12(arq_bin, arq_indice, valor1);
             break;
         }
 

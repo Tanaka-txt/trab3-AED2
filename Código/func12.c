@@ -1,4 +1,9 @@
 /*
+Membros do grupo:
+Laysa Almeida de Oliveira - NºUSP 14588002
+Júlio César Tanaka Vergamini - NºUSP 15466276
+*/
+
 #include "features.h"
 #include "registro.h"
 #include "leitura.h"
@@ -6,140 +11,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "grafo.h"
+#include "grafo_mst.h"
+#include "grafo_builder.h"
 
-#define INF 1000000000
+// Uso esse valor alto para garantir que qualquer aresta real seja menor que ele, isso ajuda a achar a aresta mínima durante a construção da MST
+#define INF 1000000000 
 
-// --- Estruturas do Grafo ---
-typedef struct Edge {
-    char *nomeProxEstacao;
-    int distProxEstacao;
-    int InMST;
-    struct Edge *next;
-} Edge;
-
-typedef struct Graph {
-    Vertex *vertices;
-    int numVertices;
-} Graph;
-
-typedef struct {
-    int cod;
-    char *nome;
-} MapEntry;
-
-typedef struct {
-    int cod;
-    int codProx;
-    int codIntegra;
-} InfoEntry;
-
-// --- Funções auxiliares para ordenação e busca ---
-static int comparar_info(const void *a, const void *b) {
-    return ((InfoEntry *)a)->cod - ((InfoEntry *)b)->cod;
-}
-
-static int buscar_info_por_codigo(InfoEntry *info, int tam, int codigo, InfoEntry *out) {
-    int esq = 0, dir = tam - 1;
-    while (esq <= dir) {
-        int meio = esq + (dir - esq) / 2;
-        if (info[meio].cod == codigo) { *out = info[meio]; return 1; }
-        if (info[meio].cod < codigo) esq = meio + 1;
-        else dir = meio - 1;
-    }
-    return 0;
-}
-
-static int comparar_nomes_vertices(const void *a, const void *b) {
-    return strcmp(*(const char **)a, *(const char **)b);
-}
-
-static int comparar_mapa(const void *a, const void *b) {
-    return ((MapEntry *)a)->cod - ((MapEntry *)b)->cod;
-}
-
-static const char* buscar_nome_por_codigo(MapEntry *mapa, int tam, int codigo) {
-    int esq = 0, dir = tam - 1;
-    while (esq <= dir) {
-        int meio = esq + (dir - esq) / 2;
-        if (mapa[meio].cod == codigo) return mapa[meio].nome;
-        if (mapa[meio].cod < codigo) esq = meio + 1;
-        else dir = meio - 1;
-    }
-    return NULL;
-}
-
-static int buscar_indice_vertice(Graph *g, const char *nome) {
-    int esq = 0, dir = g->numVertices - 1;
-    while (esq <= dir) {
-        int meio = esq + (dir - esq) / 2;
-        int cmp = strcmp(g->vertices[meio].nomeEstacao, nome);
-        if (cmp == 0) return meio;
-        if (cmp < 0) esq = meio + 1;
-        else dir = meio - 1;
-    }
-    return -1;
-}
-
-// Adiciona aresta bidirecional (grafo não direcionado)
-static void adicionar_aresta(Vertex *v, const char *nomeDest, int dist) {
-    Edge *curr = v->head;
-    Edge *prev = NULL;
-
-    while (curr != NULL && strcmp(curr->nomeProxEstacao, nomeDest) < 0) {
-        prev = curr;
-        curr = curr->next;
-    }
-
-    if (curr != NULL && strcmp(curr->nomeProxEstacao, nomeDest) == 0) {
-        if (dist < curr->distProxEstacao) {
-            curr->distProxEstacao = dist;
-        }
-        return;
-    }
-
-    Edge *new_edge = malloc(sizeof(Edge));
-    new_edge->nomeProxEstacao = strdup(nomeDest);
-    new_edge->distProxEstacao = dist;
-    new_edge->InMST = 0;
-    new_edge->next = curr;
-
-    if (prev == NULL) v->head = new_edge;
-    else prev->next = new_edge;
-}
-
-static void liberar_grafo(Graph *g) {
-    for (int i = 0; i < g->numVertices; i++) {
-        free(g->vertices[i].nomeEstacao);
-        Edge *curr = g->vertices[i].head;
-        while (curr != NULL) {
-            Edge *next = curr->next;
-            free(curr->nomeProxEstacao);
-            free(curr);
-            curr = next;
-        }
-    }
-    free(g->vertices);
-}
-
-// DFS para imprimir a MST (apenas arestas com InMST == 1)
-static void dfs_imprime_mst(Graph *g, int u, int *visitado_dfs) {
-    visitado_dfs[u] = 1;
-    Edge *curr = g->vertices[u].head;
-    while (curr != NULL) {
-        if (curr->InMST) {
-            int v = buscar_indice_vertice(g, curr->nomeProxEstacao);
-            if (v != -1 && !visitado_dfs[v]) {
-                printf("%s, %s, %d\n", g->vertices[u].nomeEstacao,
-                       curr->nomeProxEstacao, curr->distProxEstacao);
-                dfs_imprime_mst(g, v, visitado_dfs);
-            }
-        }
-        curr = curr->next;
-    }
-}
-
-// --- Implementação Principal da Funcionalidade 12 (CORRIGIDA) ---
+// Func 12 contrói a MST do grafo de estações e linhas, começando da estação de origem fornecida
 void funcionalidade12(const char *arq_dados, const char *arq_indice, const char *origem) {
+    // valida o arquivo
     FILE *fdados = fopen(arq_dados, "rb");
     if (fdados == NULL) {
         printf("Falha no processamento do arquivo.\n");
@@ -147,130 +27,106 @@ void funcionalidade12(const char *arq_dados, const char *arq_indice, const char 
     }
 
     reg_cabecalho cab;
+    // valida o cabeçalho do arquivo bin, verificação de inconsistência
     if (!validar_cabecalho(fdados, &cab)) {
         printf("Falha no processamento do arquivo.\n");
         fclose(fdados);
         return;
     }
 
-    int cap_map = 50, tam_map = 0;
-    MapEntry *mapa = malloc(cap_map * sizeof(MapEntry));
-    InfoEntry *infos = malloc(cap_map * sizeof(InfoEntry));
-    int cap_nomes = 50, qtd_nomes = 0;
-    char **nomes_unicos = malloc(cap_nomes * sizeof(char *));
+    // Conversão do Código da estação para o nome (Mapa)
+    MapEntry *mapa;
+    int tam_map;
+    char **nomes_unicos;
+    int qtd_nomes;
+    
+    // le o arquivo e constroi o mapa de código para nome
+    construir_mapa_e_vertices(fdados, &mapa, &tam_map, &nomes_unicos, &qtd_nomes);
 
-    // Primeira passagem: coletar todas as estações e informações
+    InfoEntry *infos;
+    int tam_info;
+    // guarda informações extras, integração e seguinte para validação
+    construir_info_entries(fdados, &infos, &tam_info);
+
+    // cria a estrutura do grafo a MST
+    GraphMST g;
+
+    // inicialização da lista de adjacência com nomes encontrados
+    inicializar_vertices_mst(&g, nomes_unicos, qtd_nomes);
+
+    // pula registros do arquivo direto para os reg
     fseek(fdados, 17, SEEK_SET);
     reg_dados reg;
+    
     while (1) {
         memset(&reg, 0, sizeof(reg_dados));
+
+        // Le arquivo e retorna 0, EOF
         if (ler_registro(fdados, &reg) == 0) break;
-        if (reg.status_removido == '1') continue; // ignora removidos
-
-        if (tam_map >= cap_map) {
-            cap_map *= 2;
-            mapa = realloc(mapa, cap_map * sizeof(MapEntry));
-            infos = realloc(infos, cap_map * sizeof(InfoEntry));
-        }
-        mapa[tam_map].cod = reg.codEstacao;
-        mapa[tam_map].nome = strdup(reg.nomeEstacao);
-        infos[tam_map].cod = reg.codEstacao;
-        infos[tam_map].codProx = reg.codProxEstacao;
-        infos[tam_map].codIntegra = reg.codEstIntegra;
-        tam_map++;
-
-        int existe = 0;
-        for (int i = 0; i < qtd_nomes; i++) {
-            if (strcmp(nomes_unicos[i], reg.nomeEstacao) == 0) {
-                existe = 1; break;
-            }
-        }
-        if (!existe) {
-            if (qtd_nomes >= cap_nomes) {
-                cap_nomes *= 2;
-                nomes_unicos = realloc(nomes_unicos, cap_nomes * sizeof(char *));
-            }
-            nomes_unicos[qtd_nomes] = strdup(reg.nomeEstacao);
-            qtd_nomes++;
-        }
-        liberar_strings_registro(&reg);
-    }
-
-    qsort(mapa, tam_map, sizeof(MapEntry), comparar_mapa);
-    qsort(infos, tam_map, sizeof(InfoEntry), comparar_info);
-    qsort(nomes_unicos, qtd_nomes, sizeof(char *), comparar_nomes_vertices);
-
-    // Criação do grafo com vértices únicos
-    Graph g;
-    g.numVertices = qtd_nomes;
-    g.vertices = malloc(qtd_nomes * sizeof(Vertex));
-    for (int i = 0; i < qtd_nomes; i++) {
-        g.vertices[i].nomeEstacao = nomes_unicos[i];
-        g.vertices[i].head = NULL;
-    }
-    free(nomes_unicos);
-
-    // Segunda passagem: construir arestas com VALIDAÇÃO DE DESTINO
-    fseek(fdados, 17, SEEK_SET);
-    while (1) {
-        memset(&reg, 0, sizeof(reg_dados));
-        if (ler_registro(fdados, &reg) == 0) break;
+        // ignora logicamente removidos
         if (reg.status_removido == '1') continue;
 
-        int idx_origem = buscar_indice_vertice(&g, reg.nomeEstacao);
+        // procura posi, vertice origem do grafo
+        int idx_origem = buscar_indice_vertice_mst(&g, reg.nomeEstacao);
         if (idx_origem == -1) {
             liberar_strings_registro(&reg);
             continue;
         }
 
-        // --- Aresta via codProxEstacao ---
+        // conexão de próxima estação se existir e se o destino for valido
         if (reg.codProxEstacao != -1) {
+            // tradução do código pro nome
             const char *nome_dest = buscar_nome_por_codigo(mapa, tam_map, reg.codProxEstacao);
+            
             if (nome_dest != NULL) {
-                // VALIDAÇÃO: o destino deve ter continuidade (codProx ou codIntegra existentes)
+                // valida se o destino tem um próximo ou uma integração válida
                 InfoEntry info_dest;
-                int achou_info = buscar_info_por_codigo(infos, tam_map, reg.codProxEstacao, &info_dest);
+                int achou_info = buscar_info_por_codigo(infos, tam_info, reg.codProxEstacao, &info_dest);
                 int destino_valido = 0;
+                
                 if (achou_info) {
-                    // Verifica se o destino tem próxima estação válida (existe no mapa)
-                    int prox_existe = (info_dest.codProx != -1) && 
-                                      (buscar_nome_por_codigo(mapa, tam_map, info_dest.codProx) != NULL);
-                    int integra_existe = (info_dest.codIntegra != -1) && 
-                                         (buscar_nome_por_codigo(mapa, tam_map, info_dest.codIntegra) != NULL);
+                    int prox_existe = (info_dest.codProx != -1) && (buscar_nome_por_codigo(mapa, tam_map, info_dest.codProx) != NULL);
+                    int integra_existe = (info_dest.codIntegra != -1) && (buscar_nome_por_codigo(mapa, tam_map, info_dest.codIntegra) != NULL);
                     destino_valido = prox_existe || integra_existe;
                 }
+                
                 if (destino_valido) {
-                    // Adiciona aresta bidirecional (origem <-> destino)
-                    adicionar_aresta(&g.vertices[idx_origem], nome_dest, reg.distProxEstacao);
-                    int idx_dest = buscar_indice_vertice(&g, nome_dest);
+                    // mst não direcional = aresta é adicionada nos dois sentidos
+                    adicionar_aresta_mst(&g.vertices[idx_origem], nome_dest, reg.distProxEstacao); // Ida
+                    int idx_dest = buscar_indice_vertice_mst(&g, nome_dest);
                     if (idx_dest != -1) {
-                        adicionar_aresta(&g.vertices[idx_dest], g.vertices[idx_origem].nomeEstacao, reg.distProxEstacao);
+                        adicionar_aresta_mst(&g.vertices[idx_dest], g.vertices[idx_origem].nomeEstacao, reg.distProxEstacao); // Volta
                     }
                 }
             }
         }
 
-        // --- Aresta via codEstIntegra ---
+
+        // conexão de outras linhas se existir e se o destino for valido
         if (reg.codEstIntegra != -1) {
             const char *nome_integ = buscar_nome_por_codigo(mapa, tam_map, reg.codEstIntegra);
+            
+            // Verifica se a integração existe e se não é uma estação integrando com ela mesma.
             if (nome_integ != NULL && strcmp(reg.nomeEstacao, nome_integ) != 0) {
-                // Integração é sempre válida (não há continuidade a verificar, pois é um ponto de conexão)
-                adicionar_aresta(&g.vertices[idx_origem], nome_integ, 0);
-                int idx_dest = buscar_indice_vertice(&g, nome_integ);
+                // A distância é 0 se for integração 
+                adicionar_aresta_mst(&g.vertices[idx_origem], nome_integ, 0);
+                int idx_dest = buscar_indice_vertice_mst(&g, nome_integ);
                 if (idx_dest != -1) {
-                    adicionar_aresta(&g.vertices[idx_dest], g.vertices[idx_origem].nomeEstacao, 0);
+                    adicionar_aresta_mst(&g.vertices[idx_dest], g.vertices[idx_origem].nomeEstacao, 0);
                 }
             }
         }
 
+        // limpa memoria da string dinâmicas lidas no registro atual para evitar vazamentos
         liberar_strings_registro(&reg);
     }
 
-    // Localiza o vértice de origem
-    int start_idx = buscar_indice_vertice(&g, origem);
+    // ve origem de nó
+    int start_idx = buscar_indice_vertice_mst(&g, origem);
+    // Se a estação passada pelo usuário não existir no grafo, encerra o programa limpando tudo
     if (start_idx == -1) {
         printf("Registro inexistente.\n");
-        liberar_grafo(&g);
+        liberar_grafo_mst(&g);
         for (int i = 0; i < tam_map; i++) free(mapa[i].nome);
         free(mapa);
         free(infos);
@@ -278,25 +134,33 @@ void funcionalidade12(const char *arq_dados, const char *arq_indice, const char 
         return;
     }
 
-    // --- Algoritmo de Prim para encontrar a MST ---
+    //Rastreia quais vertices já foram colocados na arvore
     int *visited = calloc(g.numVertices, sizeof(int));
-    visited[start_idx] = 1;
+    visited[start_idx] = 1; // Começamos a árvore pelo nó de origem
 
+    // Grafo de n vertices precisa de n-1 arestas para conectar tudo
     for (int count = 0; count < g.numVertices - 1; count++) {
         int best_u = -1, best_v = -1, min_dist = INF;
 
+        // Passa por todos os vertices até ver um já colocado (u) Não visitado = (V)
         for (int u = 0; u < g.numVertices; u++) {
             if (visited[u]) {
-                Edge *curr = g.vertices[u].head;
+                EdgeMST *curr = g.vertices[u].head;
+                
+                // avalia todas as arestas saindo de u
                 while (curr != NULL) {
-                    int v = buscar_indice_vertice(&g, curr->nomeProxEstacao);
+                    int v = buscar_indice_vertice_mst(&g, curr->nomeProxEstacao);
+                    
+                    // Se o destino ainda não está na árvore é um candidato válido
                     if (!visited[v]) {
+                        // Acha arestas menor que a minima
                         if (curr->distProxEstacao < min_dist) {
                             min_dist = curr->distProxEstacao;
                             best_u = u;
                             best_v = v;
-                        } else if (curr->distProxEstacao == min_dist) {
-                            // Desempate: menor índice de origem, depois menor índice de destino
+                        } 
+                        // Desempate = se a distancia for igual, prioriza o vértice com menor índice no array de vértices.
+                        else if (curr->distProxEstacao == min_dist) {
                             if (u < best_u) {
                                 best_u = u;
                                 best_v = v;
@@ -310,33 +174,37 @@ void funcionalidade12(const char *arq_dados, const char *arq_indice, const char 
             }
         }
 
+        // Se encontrou uma aresta valida:
         if (best_u != -1 && best_v != -1) {
-            // Marca a aresta u -> v como pertencente à MST
-            Edge *e = g.vertices[best_u].head;
+            // Varre as arestas do vértice vencedor para marcar qual foi escolhida
+            EdgeMST *e = g.vertices[best_u].head;
             while (e != NULL) {
+                // Ao encontrar a aresta especifica que venceu marca a flag
                 if (strcmp(e->nomeProxEstacao, g.vertices[best_v].nomeEstacao) == 0 && e->distProxEstacao == min_dist) {
                     e->InMST = 1;
                     break;
                 }
                 e = e->next;
             }
+            // Marca o vértice destino como visitado para a próxima rodada do laço
             visited[best_v] = 1;
         } else {
-            break; // grafo desconexo
+            // se for -1 então não há mais arestas para adicionar o grafo é desconexo
+            break; 
         }
     }
 
-    // --- Impressão via DFS na MST a partir da origem ---
+    // impressão do MST por visitados, unico da busca em profundidade para não confundir com o vetor de visitados da construção da MST
     int *visitado_dfs = calloc(g.numVertices, sizeof(int));
+    
     dfs_imprime_mst(&g, start_idx, visitado_dfs);
     free(visitado_dfs);
 
-    // Limpeza
+    // liberação 
     free(visited);
     for (int i = 0; i < tam_map; i++) free(mapa[i].nome);
     free(mapa);
     free(infos);
-    liberar_grafo(&g);
+    liberar_grafo_mst(&g);
     fclose(fdados);
 }
-*/

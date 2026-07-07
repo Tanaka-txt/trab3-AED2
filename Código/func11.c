@@ -4,14 +4,15 @@ Laysa Almeida de Oliveira - NºUSP 14588002
 Júlio César Tanaka Vergamini - NºUSP 15466276
 */
 
-// Funcionalidade 11: constrói o grafo de estações e aplica o algoritmo de Dijkstra para encontrar o caminho de menor distância entre uma estação de origem e uma estação de destino. 
-// No final, imprime o número de estações percorridas, a distância total e a sequência de estações do caminho encontrado.
-
 #include "features.h"
 #include <stdlib.h>
 #include "grafo.h"
+#include "grafo_builder.h"
 
 #define INF 1000000000 // Valor usado para representar "distância infinita" no Dijkstra
+
+// Funcionalidade 11: constrói o grafo de estações e aplica o algoritmo de Dijkstra para encontrar o caminho de menor distância entre uma estação de origem e uma estação de destino. 
+// No final, imprime o número de estações percorridas, a distância total e a sequência de estações do caminho encontrado.
 
 void funcionalidade11(const char *arq_dados, const char *arq_indice, const char *origem, const char *destino) {
     Graph g; // Constrói o grafo completo
@@ -46,6 +47,7 @@ void funcionalidade11(const char *arq_dados, const char *arq_indice, const char 
             int min_dist = INF;
 
             // Seleciona, entre os vértices ainda não visitados, aquele com menor distância 
+            // O loop iterando de 0 a g.numVertices garante o desempate pelo menor nome alfabético!
             for (int i = 0; i < g.numVertices; i++) {
                 if (!visited[i] && dist[i] < min_dist) {
                     min_dist = dist[i];
@@ -54,7 +56,7 @@ void funcionalidade11(const char *arq_dados, const char *arq_indice, const char 
             }
 
             // Encerra o loop se não houver mais vértices alcançáveis (u == -1) ou se o destino já foi processado (u == end_idx).
-            if (u == -1 || u == end_idx) break;
+            if (u == -1 || u == end_idx) break; 
             visited[u] = 1;
 
             Edge *curr = g.vertices[u].head;
@@ -68,7 +70,7 @@ void funcionalidade11(const char *arq_dados, const char *arq_indice, const char 
                         dist[v] = dist[u] + weight;
                         prev[v] = u;
                     }
-                    // Empate de distância: para desempatar --> predecessor com menor índice (nome alfabeticamente menor)
+                    // Desempate de aresta: se o peso der empate, pegamos o predecessor com menor índice (nome alfabeticamente menor)
                     else if (dist[u] + weight == dist[v]) {
                         if (u < prev[v]) {
                             prev[v] = u;
@@ -94,11 +96,11 @@ void funcionalidade11(const char *arq_dados, const char *arq_indice, const char 
                 curr = prev[curr];
             }
 
-            // Subtrai 1 do tamanho do caminho --> a origem não deve ser contabilizada 
+            // Subtrai 1 do tamanho do caminho --> a origem não deve ser contabilizada como 'estação percorrida'
             printf("Numero de estacoes que serao percorridas: %d\n", path_len - 1);
             printf("Distancia que sera percorrida: %d\n", dist[end_idx]);
 
-            // O vetor "path" foi montado do destino para a origem
+            // O array 'path' foi montado do destino para a origem. Imprimi de trás para frente (origem ao destino).
             for (int i = path_len - 1; i >= 0; i--) {
                 printf("%s", g.vertices[path[i]].nomeEstacao);
                 if (i > 0) printf(", ");

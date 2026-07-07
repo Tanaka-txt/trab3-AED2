@@ -4,33 +4,13 @@ Laysa Almeida de Oliveira - NºUSP 14588002
 Júlio César Tanaka Vergamini - NºUSP 15466276
 */
 
-// Funcionalidade 13: constrói o grafo de estações e conta, a partir de uma estação 
-// de origem informada,quantos ciclos simples existem partindo dela e retornando a ela
 #include "features.h"
 #include <stdlib.h>
 #include "grafo.h"
+#include "grafo_builder.h"
 
-/*
- * dfs_ciclos
- * -------------
- * Realiza uma busca em profundidade (DFS) com backtracking a partir do
- * vertice "u", procurando caminhos que retornem ao vertice de origem
- * "origin" sem repetir nenhum vertice pelo caminho (ciclo simples).
- * Cada vez que um caminho fecha de volta em "origin", o contador
- * "count" e incrementado.
- *
- * Parametros:
- *   g       - ponteiro para o grafo onde a busca sera realizada.
- *   u       - vertice atual sendo explorado nesta chamada recursiva.
- *   origin  - vertice de origem/destino do ciclo (fixo durante toda a busca).
- *   visited - vetor de marcacao dos vertices ja visitados no caminho
- *             atual (usado para nao repetir vertices dentro do mesmo ciclo).
- *   count   - ponteiro para o contador de ciclos simples encontrados,
- *             incrementado a cada ciclo fechado.
- *
- * Retorno:
- *   Nao ha retorno (void). O resultado e acumulado em "*count".
- */
+// --- DFS com Backtracking para encontrar Ciclos Simples ---
+
 static void dfs_ciclos(Graph *g, int u, int origin, int *visited, int *count) {
     // Marca o vertice atual como visitado para a busca neste caminho especifico.
     visited[u] = 1;
@@ -44,8 +24,7 @@ static void dfs_ciclos(Graph *g, int u, int origin, int *visited, int *count) {
             if (v == origin) {
                 (*count)++;
             }
-            // Caso contrario, se o vertice ainda nao foi visitado neste
-            // caminho, continua a busca recursivamente a partir dele.
+            // Caso contrário, se ainda não visitamos essa estação NESTE caminho, continuamos avançando
             else if (!visited[v]) {
                 dfs_ciclos(g, v, origin, visited, count);
             }
@@ -81,12 +60,11 @@ static void dfs_ciclos(Graph *g, int u, int origin, int *visited, int *count) {
  *   quantidade de ciclos impressa e -1.
  */
 void funcionalidade13(const char *arq_dados, const char *arq_indice, const char *origem) {
-    // Constroi o grafo completo (abertura do arquivo, validacao,
-    // montagem do mapa, criacao de vertices e arestas). A mensagem de
-    // erro, caso ocorra, ja e impressa dentro de construir_grafo.
     Graph g;
+
+    // Toda a complexidade de leitura do binário e montagem do grafo fica a cargo do builder
     if (!construir_grafo(arq_dados, &g)) {
-        return;
+        return; // A mensagem de erro já é tratada dentro do construtor
     }
 
     // --- Busca e contagem dos ciclos simples ---

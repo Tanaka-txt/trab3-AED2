@@ -12,6 +12,4 @@ Júlio César Tanaka Vergamini - NºUSP 15466276
 
 int ler_registro(FILE *binario, reg_dados *registro);
 
-void le_linha_csv(char *linha, reg_dados *registro, int topo);
-
 #endif
